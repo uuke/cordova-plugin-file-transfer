@@ -735,12 +735,15 @@ static CFIndex WriteDataToStream(NSData* data, CFWriteStreamRef stream)
 
         // create parent directories if needed
         if ([[NSFileManager defaultManager] createDirectoryAtPath:parentPath withIntermediateDirectories:YES attributes:nil error:&error] == NO) {
-            if (error) {
-                [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create path to save downloaded file: %@", [error localizedDescription]]];
-            } else {
-                [self cancelTransferWithError:connection errorMessage:@"Could not create path to save downloaded file"];
+          if (error) {
+            if (error.code != 516) {
+              [self cancelTransferWithError:connection errorMessage:[NSString stringWithFormat:@"Could not create path to save downloaded file: %@", [error localizedDescription]]];
+              return;
             }
+          } else {
+            [self cancelTransferWithError:connection errorMessage:@"Could not create path to save downloaded file"];
             return;
+          }
         }
         // create target file
         if ([[NSFileManager defaultManager] createFileAtPath:filePath contents:nil attributes:nil] == NO) {
